@@ -5,7 +5,7 @@ import React, {
   forwardRef,
 } from 'react'
 import Textarea from 'react-textarea-autosize'
-import { useLocalStorage } from '@rehooks/local-storage'
+import { useStorageState } from 'react-storage-hooks'
 import { v4 as uuidv4 } from 'uuid'
 import UAParser from 'ua-parser-js'
 import { isMobile, params2queryString, INPUT } from '@botonic/core'
@@ -190,23 +190,35 @@ export const Webchat = forwardRef((props, ref) => {
   const { theme } = webchatState
   const { initialSession, initialDevSettings, onStateChange } = props
   const isOnline = useNetwork()
-  const [botonicState, saveState, deleteState] = useLocalStorage('botonicState')
+  const getThemeProperty = _getThemeProperty(theme)
+
+  const getStorage = () => {
+    const storage = getThemeProperty('storage', props.storage)
+    if (storage === 'none') return null
+    if (storage === 'sessionStorage') return sessionStorage
+    return localStorage
+  }
+
+  const [botonicState, saveState, writeError] = useStorageState(
+    getStorage(),
+    'botonicState'
+  )
+
   const saveWebchatState = webchatState => {
-    saveState(
-      stringifyWithRegexs({
-        user: webchatState.user,
-        messages: webchatState.messagesJSON,
-        session: webchatState.session,
-        lastRoutePath: webchatState.lastRoutePath,
-        devSettings: webchatState.devSettings,
-        lastMessageUpdate: webchatState.lastMessageUpdate,
-        themeUpdates: webchatState.themeUpdates, // can contain regexs
-      })
-    )
+    getStorage() &&
+      saveState(
+        stringifyWithRegexs({
+          user: webchatState.user,
+          messages: webchatState.messagesJSON,
+          session: webchatState.session,
+          lastRoutePath: webchatState.lastRoutePath,
+          devSettings: webchatState.devSettings,
+          lastMessageUpdate: webchatState.lastMessageUpdate,
+          themeUpdates: webchatState.themeUpdates, // can contain regexs
+        })
+      )
   }
   const deviceAdapter = new DeviceAdapter()
-
-  const getThemeProperty = _getThemeProperty(theme)
 
   const handleAttachment = event => {
     if (!isAllowedSize(event.target.files[0].size)) {
@@ -239,7 +251,7 @@ export const Webchat = forwardRef((props, ref) => {
   const resendUnsentInputs = async () =>
     props.resendUnsentInputs && props.resendUnsentInputs()
 
-  // Load initial state from localStorage
+  // Load initial state from storage
   useEffect(() => {
     let {
       user,
@@ -249,7 +261,8 @@ export const Webchat = forwardRef((props, ref) => {
       devSettings,
       lastMessageUpdate,
       themeUpdates,
-    } = botonicState || {}
+    } = (botonicState && JSON.parse(botonicState)) || {}
+
     if (!user || Object.keys(user).length === 0) user = createUser()
     updateUser(user)
     if (
@@ -421,7 +434,8 @@ export const Webchat = forwardRef((props, ref) => {
     if (!CoverComponent) return
     if (
       !botonicState ||
-      (botonicState.messages && botonicState.messages.length == 0)
+      (JSON.parse(botonicState).messages &&
+        JSON.parse(botonicState).messages.length == 0)
     )
       toggleCoverComponent(true)
   }, [])

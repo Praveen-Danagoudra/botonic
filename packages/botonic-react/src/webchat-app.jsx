@@ -17,6 +17,7 @@ export class WebchatApp {
     enableUserInput,
     defaultDelay,
     defaultTyping,
+    storage,
     onInit,
     onOpen,
     onClose,
@@ -33,6 +34,7 @@ export class WebchatApp {
     this.enableUserInput = enableUserInput
     this.defaultDelay = defaultDelay
     this.defaultTyping = defaultTyping
+    this.storage = storage
     this.onInit = onInit
     this.onOpen = onOpen
     this.onClose = onClose
@@ -174,6 +176,7 @@ export class WebchatApp {
       enableEmojiPicker,
       defaultDelay,
       defaultTyping,
+      storage,
       onInit,
       onOpen,
       onClose,
@@ -191,6 +194,7 @@ export class WebchatApp {
     enableUserInput = enableUserInput || this.enableUserInput
     defaultDelay = defaultDelay || this.defaultDelay
     defaultTyping = defaultTyping || this.defaultTyping
+    storage = storage || this.storage
     this.onInit = onInit || this.onInit
     this.onOpen = onOpen || this.onOpen
     this.onClose = onClose || this.onClose
@@ -208,6 +212,7 @@ export class WebchatApp {
         enableEmojiPicker={enableEmojiPicker}
         enableAttachments={enableAttachments}
         enableUserInput={enableUserInput}
+        storage={storage}
         defaultDelay={defaultDelay}
         defaultTyping={defaultTyping}
         onInit={(...args) => this.onInitWebchat(...args)}
